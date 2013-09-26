@@ -5,6 +5,7 @@ Features are:
 - progress bar adapts to length of terminal window
 
 ## usage example
+``` python
 from pbar import ProgressBar
 rangevalue = 40
 
@@ -17,6 +18,8 @@ progressbar = ProgressBar(rangevalue, 'implicit update by 1')
 for i in range(rangevalue):
     .. do things..
     pbar.update()
+```
 
-code taken from here: http://stackoverflow.com/questions/3173320/text-progress-bar-in-the-console?lq=1
-and here: http://pypi.python.org/pypi/progressbar/2.2
+code taken from: 
+- http://stackoverflow.com/questions/3173320/text-progress-bar-in-the-console
+- http://pypi.python.org/pypi/progressbar/2.2
