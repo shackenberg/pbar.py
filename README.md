@@ -1,10 +1,11 @@
-Super minimal progress bar to monitor long running processes.
+## pbar.py
+### Super minimal progress bar to monitor long running processes.
 
-Features are:
+#### Features are:
 - shows the spent time and the estimated time till completion
 - progress bar adapts to length of terminal window
 
-## usage example
+#### Usage example:
 ``` python
 from pbar import ProgressBar
 rangevalue = 40
@@ -20,6 +21,6 @@ for i in range(rangevalue):
     pbar.update()
 ```
 
-code taken from: 
+#### Code taken from: 
 - http://stackoverflow.com/questions/3173320/text-progress-bar-in-the-console
 - http://pypi.python.org/pypi/progressbar/2.2
