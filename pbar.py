@@ -40,25 +40,25 @@ class ProgressBar(object):
         self.state = 0
         _, self.ncolumns = os.popen('stty size', 'r').read().split()
         # gets the width of the terminal window
-        if title != None:
+        if title is not None:
             self.title = title + ' '
         else:
             self.title = ''
     
     def update(self, currentval=None):
-        if currentval != None:
+        if currentval is not None:
             self.state = currentval            
         
         elapsed_time = time.time() - self.start_time
         elapsed_time_pretty = str(timedelta(seconds=round(elapsed_time)))
         
         if elapsed_time > 3:
-            estimated_time_left = elapsed_time * (self.maxval / float(self.state) -1)
+            estimated_time_left = elapsed_time * (self.maxval / float(self.state) - 1)
             estimated_time_left_pretty = str(timedelta(seconds=round(estimated_time_left)))
             progress = int(round(self.state * 100.0 / self.maxval))
-            overhead = 25  + len(elapsed_time_pretty) + len(self.title) + len(estimated_time_left_pretty)
+            overhead = 25 + len(elapsed_time_pretty) + len(self.title) + len(estimated_time_left_pretty)
             max_bar_length = int(self.ncolumns) - overhead
-            bar_length= progress * max_bar_length / 100
+            bar_length = progress * max_bar_length / 100
             output_string = '\r{4}[{0}] {1}% in {2} - {3} remaining'.format('#'*bar_length, progress,                                                                             
                                                                             elapsed_time_pretty, 
                                                                             estimated_time_left_pretty, 
@@ -68,7 +68,7 @@ class ProgressBar(object):
             progress = int(round(self.state * 100.0 / self.maxval))
             overhead = 35 + len(elapsed_time_pretty) + len(self.title)
             max_bar_length = int(self.ncolumns) - overhead
-            bar_length= progress * max_bar_length / 100
+            bar_length = progress * max_bar_length / 100
             output_string = '\r{3}[{0}] {1}% in {2}'.format('#'*bar_length, progress,
                                                             elapsed_time_pretty, self.title)
             sys.stdout.write(output_string)
