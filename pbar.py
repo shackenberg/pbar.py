@@ -52,7 +52,7 @@ class ProgressBar(object):
         elapsed_time = time.time() - self.start_time
         elapsed_time_pretty = str(timedelta(seconds=round(elapsed_time)))
         
-        if elapsed_time > 3:
+        if (elapsed_time > 3) & (self.state > 0):
             estimated_time_left = elapsed_time * (self.maxval / float(self.state) - 1)
             estimated_time_left_pretty = str(timedelta(seconds=round(estimated_time_left)))
             progress = int(round(self.state * 100.0 / self.maxval))
