@@ -44,35 +44,39 @@ class ProgressBar(object):
             self.title = title + ' '
         else:
             self.title = ''
+        self.time_last_update = 0
     
     def update(self, currentval=None):
         if currentval is not None:
-            self.state = currentval            
-        
-        elapsed_time = time.time() - self.start_time
-        elapsed_time_pretty = str(timedelta(seconds=round(elapsed_time)))
-        
-        if (elapsed_time > 3) & (self.state > 0):
-            estimated_time_left = elapsed_time * (self.maxval / float(self.state) - 1)
-            estimated_time_left_pretty = str(timedelta(seconds=round(estimated_time_left)))
-            progress = int(round(self.state * 100.0 / self.maxval))
-            overhead = 25 + len(elapsed_time_pretty) + len(self.title) + len(estimated_time_left_pretty)
-            max_bar_length = int(self.ncolumns) - overhead
-            bar_length = progress * max_bar_length / 100
-            output_string = '\r{4}[{0}] {1}% in {2} - {3} remaining'.format('#'*bar_length, progress,                                                                             
-                                                                            elapsed_time_pretty, 
-                                                                            estimated_time_left_pretty, 
-                                                                            self.title)
-            sys.stdout.write(output_string)
-        else:
-            progress = int(round(self.state * 100.0 / self.maxval))
-            overhead = 35 + len(elapsed_time_pretty) + len(self.title)
-            max_bar_length = int(self.ncolumns) - overhead
-            bar_length = progress * max_bar_length / 100
-            output_string = '\r{3}[{0}] {1}% in {2}'.format('#'*bar_length, progress,
-                                                            elapsed_time_pretty, self.title)
-            sys.stdout.write(output_string)
-        sys.stdout.flush()
+            self.state = currentval
+        current_time = time.time()
+        complete_elapsed_time = current_time - self.start_time
+        complete_elapsed_time_pretty = str(timedelta(seconds=round(complete_elapsed_time)))
+        time_since_last_update = current_time - self.time_last_update
+        if (time_since_last_update > 1) | (self.state == self.maxval):
+            if complete_elapsed_time > 3:
+                estimated_time_left = complete_elapsed_time * (self.maxval / float(self.state) - 1)
+                estimated_time_left_pretty = str(timedelta(seconds=round(estimated_time_left)))
+                progress = int(round(self.state * 100.0 / self.maxval))
+                overhead = 25 + len(complete_elapsed_time_pretty) + len(self.title) + len(estimated_time_left_pretty)
+                max_bar_length = int(self.ncolumns) - overhead
+                bar_length = progress * max_bar_length / 100
+                output_string = '\r{4}[{0}] {1}% in {2} - {3} remaining'.format('#'*bar_length, progress,
+                                                                                complete_elapsed_time_pretty,
+                                                                                estimated_time_left_pretty,
+                                                                                self.title)
+                sys.stdout.write(output_string)
+            else:
+                progress = int(round(self.state * 100.0 / self.maxval))
+                overhead = 35 + len(complete_elapsed_time_pretty) + len(self.title)
+                max_bar_length = int(self.ncolumns) - overhead
+                bar_length = progress * max_bar_length / 100
+                output_string = '\r{3}[{0}] {1}% in {2}'.format('#'*bar_length, progress,
+                                                                complete_elapsed_time_pretty, self.title)
+                sys.stdout.write(output_string)
+
+            self.time_last_update = current_time
+            sys.stdout.flush()
         self.state += 1
         if self.state == self.maxval + 1:
             print
