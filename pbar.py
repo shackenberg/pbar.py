@@ -84,14 +84,15 @@ class ProgressBar(object):
 if __name__ == '__main__':
     ## usage example
     from time import sleep
-    rangevalue = 40
-    
-    progressbar = ProgressBar(rangevalue, 'explicit update')
-    for new_value in range(rangevalue):
+    example_rangevalue = 40
+    example_title_example_one =  'explicit update'
+    progressbar = ProgressBar(example_rangevalue, example_title_example_one)
+    for new_value in range(example_rangevalue):
         sleep(0.1)
         progressbar.update(new_value)    
     
-    progressbar = ProgressBar(rangevalue, 'implicit update by 1')
-    for i in range(rangevalue):
+    example_title_example_two = 'implicit update by 1'
+    progressbar = ProgressBar(example_rangevalue, example_title_example_two)
+    for i in range(example_rangevalue):
         sleep(0.1)
         progressbar.update()
