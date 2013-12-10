@@ -54,7 +54,7 @@ class ProgressBar(object):
         complete_elapsed_time_pretty = str(timedelta(seconds=round(complete_elapsed_time)))
         time_since_last_update = current_time - self.time_last_update
         if (time_since_last_update > 1) | (self.state == self.maxval):
-            if complete_elapsed_time > 3:
+            if (complete_elapsed_time > 3) & (self.state > 0):
                 estimated_time_left = complete_elapsed_time * (self.maxval / float(self.state) - 1)
                 estimated_time_left_pretty = str(timedelta(seconds=round(estimated_time_left)))
                 progress = int(round(self.state * 100.0 / self.maxval))
