@@ -35,16 +35,22 @@ import os
 class ProgressBar(object):
 
     def __init__(self, maxval, title=None):
-        self.maxval = maxval - 1 
+        self.maxval = maxval - 1
         self.start_time = time.time()
         self.state = 0
-        _, self.ncolumns = os.popen('stty size', 'r').read().split()
-        # gets the width of the terminal window
+        try:
+            self.ncolumns = self.get_width_of_terminal()
+        except:
+            self.ncolumns = 80
         if title is not None:
             self.title = title + ' '
         else:
             self.title = ''
         self.time_last_update = 0
+
+    def get_width_of_terminal(self):
+        _, ncolumns = os.popen('stty size', 'r').read().split()
+        return ncolumns
     
     def update(self, currentval=None):
         if currentval is not None:
@@ -80,7 +86,7 @@ class ProgressBar(object):
         self.state += 1
         if self.state == self.maxval + 1:
             print
- 
+
 if __name__ == '__main__':
     ## usage example
     from time import sleep
