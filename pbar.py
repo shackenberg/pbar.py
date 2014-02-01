@@ -34,8 +34,8 @@ import os
  
 class ProgressBar(object):
 
-    def __init__(self, max_value, title=None, start_state=-1, max_refeshrate=0.1):
-        self.max_value = self.adjust_max_value_for_0_indexing(max_value)
+    def __init__(self, max_value, title=None, start_state=0, max_refeshrate=0.1):
+        self.max_value = max_value
         self.start_time = time.time()
         self.state = start_state
         self.lenght = self.automatically_set_length_pbar()
@@ -43,9 +43,6 @@ class ProgressBar(object):
         self.time_last_update = 0
         self.max_refreshrate = max_refeshrate
         self.is_last_update = False
-
-    def adjust_max_value_for_0_indexing(self, max_value):
-        return max_value - 1
 
     def automatically_set_length_pbar(self):
         try:
@@ -79,7 +76,7 @@ class ProgressBar(object):
 
     def update_state(self, current_value):
         if current_value is not None:
-            self.state = current_value
+            self.state = current_value + 1
         else:
             self.state += 1
 
@@ -90,33 +87,42 @@ class ProgressBar(object):
         max_bar_length = int(self.lenght) - overhead
         return progress * max_bar_length / 100
 
-    def computed_estimate_time_left_pretty(self, complete_elapsed_time):
+    def computed_estimate_time_left(self, complete_elapsed_time):
         estimated_time_left = complete_elapsed_time * (self.max_value / float(self.state) - 1)
-        estimated_time_left_pretty = self.time_div_to_short_str(estimated_time_left)
-        return estimated_time_left_pretty
+        return estimated_time_left
 
-    def build_output_string(self, current_time, show_estimated_time_left=False):
+    def build_output_string(self, current_time):
         progress = int(round(self.state * 100.0 / self.max_value))
         complete_elapsed_time = current_time - self.start_time
         complete_elapsed_time_pretty = self.time_div_to_short_str(complete_elapsed_time)
+
         if (complete_elapsed_time > 3) & (self.state > 0):
-            show_estimated_time_left = True
-
-        if show_estimated_time_left:
-                estimated_time_left_pretty = self.computed_estimate_time_left_pretty(complete_elapsed_time)
-                overhead = 25 + len(complete_elapsed_time_pretty) + len(self.title) + len(estimated_time_left_pretty)
-                bar_length = self.compute_bar_length(overhead, progress)
-                output_string = '\r{3}[{0}] {1}% in {2} - {4} remaining'.format('#'*bar_length, progress,
-                                                                                complete_elapsed_time_pretty,
-                                                                                self.title,
-                                                                                estimated_time_left_pretty)
+                estimated_time_left = self.computed_estimate_time_left(complete_elapsed_time)
+                estimated_time_left_pretty = self.time_div_to_short_str(estimated_time_left)
+                estimated_time_left_pretty_formated = " - " + estimated_time_left_pretty + " remaining"
+                len_fillers = 13
         else:
-                overhead = 35 + len(complete_elapsed_time_pretty) + len(self.title)
-                bar_length = self.compute_bar_length(overhead, progress)
-                output_string = '\r{3}[{0}] {1}% in {2}'.format('#'*bar_length, progress,
-                                                                complete_elapsed_time_pretty,
-                                                                self.title)
+                estimated_time_left_pretty_formated = ''
+                len_fillers = 35
 
+        carriage_return = "\r"
+        overhead = len_fillers + \
+                   len(complete_elapsed_time_pretty) + \
+                   len(self.title) + \
+                   len(estimated_time_left_pretty_formated)
+        bar_length = self.compute_bar_length(overhead, progress)
+        progressbar_string = '[' + '#' * bar_length + ']'
+        progress_str = " " + str(progress) + "% in "
+        complete_elapsed_time_pretty = str(complete_elapsed_time_pretty)
+
+        ordered_output_string_fields = [carriage_return,
+                                self.title,
+                                progressbar_string,
+                                progress_str,
+                                complete_elapsed_time_pretty,
+                                estimated_time_left_pretty_formated]
+
+        output_string =  "".join(ordered_output_string_fields)
         return output_string
 
     def print_pbar(self, output_string):
