@@ -27,18 +27,18 @@
     by Ludwig Schmidt-Hackenberg
 """
 import sys
-import time
+from time import time, sleep
 from datetime import timedelta
 import os
-
+import unittest
  
 class ProgressBar(object):
 
     def __init__(self, max_value, title=None, start_state=0, max_refeshrate=0.1):
         self.max_value = max_value
-        self.start_time = time.time()
+        self.start_time = time()
         self.state = start_state
-        self.lenght = self.automatically_set_length_pbar()
+        self.length = self.automatically_set_length_pbar()
         self.title = self.prepare_title(title)
         self.time_last_update = 0
         self.max_refreshrate = max_refeshrate
@@ -62,8 +62,13 @@ class ProgressBar(object):
             return title + ' '
 
     def update(self, current_value=None):
-        self.update_state(current_value)
-        current_time = time.time()
+        if current_value is None:
+            self.state += 1
+        else:
+            self.state = current_value + 1
+        if self.state > self.max_value:
+            raise ValueError("state >= max_value")
+        current_time = time()
         time_since_last_update = current_time - self.time_last_update
         if self.state == self.max_value:
             self.is_last_update = True
@@ -74,17 +79,12 @@ class ProgressBar(object):
         if self.is_last_update:
             self.jump_to_newline()
 
-    def update_state(self, current_value):
-        if current_value is not None:
-            self.state = current_value + 1
-        else:
-            self.state += 1
 
     def time_div_to_short_str(self, time_div):
         return str(timedelta(seconds=round(time_div)))
 
     def compute_bar_length(self, overhead, progress):
-        max_bar_length = int(self.lenght) - overhead
+        max_bar_length = int(self.length) - overhead
         return progress * max_bar_length / 100
 
     def computed_estimate_time_left(self, complete_elapsed_time):
@@ -99,17 +99,17 @@ class ProgressBar(object):
         if (complete_elapsed_time > 3) & (self.state > 0):
                 estimated_time_left = self.computed_estimate_time_left(complete_elapsed_time)
                 estimated_time_left_pretty = self.time_div_to_short_str(estimated_time_left)
-                estimated_time_left_pretty_formated = " - " + estimated_time_left_pretty + " remaining"
-                len_fillers = 13
+                estimated_time_left_pretty_formatted = " - " + estimated_time_left_pretty + " remaining"
+                len_fillers = 12
         else:
-                estimated_time_left_pretty_formated = ''
-                len_fillers = 35
+                estimated_time_left_pretty_formatted = ''
+                len_fillers = 32
 
         carriage_return = "\r"
         overhead = len_fillers + \
                    len(complete_elapsed_time_pretty) + \
                    len(self.title) + \
-                   len(estimated_time_left_pretty_formated)
+                   len(estimated_time_left_pretty_formatted)
         bar_length = self.compute_bar_length(overhead, progress)
         progressbar_string = '[' + '#' * bar_length + ']'
         progress_str = " " + str(progress) + "% in "
@@ -120,7 +120,7 @@ class ProgressBar(object):
                                 progressbar_string,
                                 progress_str,
                                 complete_elapsed_time_pretty,
-                                estimated_time_left_pretty_formated]
+                                estimated_time_left_pretty_formatted]
 
         output_string =  "".join(ordered_output_string_fields)
         return output_string
@@ -132,25 +132,110 @@ class ProgressBar(object):
     def jump_to_newline(self):
         print
 
+class ProgressBarTests(unittest.TestCase):
+    """ run tests with
+        python -m unittest pbar
+    """
+    def testExplicitStart(self):
+        pbar = ProgressBar(10)
+        pbar.update(0)
+        pbar.length = 80
+        output = pbar.build_output_string(time())
+        should_value = '\r[####] 10% in 0:00:00'
+        self.assertEquals(output, should_value)
+
+    def testExplicitEnd(self):
+        pbar = ProgressBar(99)
+        pbar.update(98)
+        pbar.length = 80
+        output = pbar.build_output_string(time())
+        should_value = '\r[#########################################] 100% in 0:00:00'
+        self.assertEquals(output, should_value)
+
+    def testImplicitStart(self):
+        pbar = ProgressBar(10)
+        pbar.update()
+        pbar.length = 80
+        output = pbar.build_output_string(time())
+        should_value = '\r[####] 10% in 0:00:00'
+        self.assertEquals(output, should_value)
+
+    def testImplicitEnd(self):
+        max_value = 99
+        pbar = ProgressBar(max_value)
+        for i in range(max_value-1):
+            pbar.update()
+        pbar.update()
+        pbar.length = 80
+        output = pbar.build_output_string(time())
+        should_value = '\r[#########################################] 100% in 0:00:00'
+        self.assertEquals(output, should_value)
+
+    def testTitle(self):
+        example_title = 'example title'
+        pbar = ProgressBar(10, example_title)
+        pbar.update(0)
+        pbar.length = 80
+        output = pbar.build_output_string(time())
+        should_value = '\rexample title [##] 10% in 0:00:00'
+        self.assertEquals(output, should_value)
+
+    def testElapsedTime(self):
+        pbar = ProgressBar(10)
+        pbar.update(0)
+        sleep(1)
+        pbar.length = 80
+        output = pbar.build_output_string(time())
+        should_value = '\r[####] 10% in 0:00:01'
+        self.assertEquals(output, should_value)
+
+    def testEstimatedTime(self):
+        pbar = ProgressBar(10)
+        pbar.update(0)
+        sleep(3)
+        pbar.length = 80
+        output = pbar.build_output_string(time())
+        should_value = '\r[####] 10% in 0:00:03 - 0:00:27 remaining'
+        self.assertEquals(output, should_value)
+
+    def testEstimatedTimeEnd(self):
+        pbar = ProgressBar(10)
+        pbar.update(0)
+        sleep(3)
+        pbar.update(9)
+        pbar.length = 80
+        output = pbar.build_output_string(time())
+        should_value = '\r[#########################################] 100% in 0:00:03 - 0:00:00 remaining'
+        self.assertEquals(output, should_value)
+
+    def testException(self):
+        max_value = 99
+        pbar = ProgressBar(max_value)
+        self.assertRaises(ValueError,pbar.update, max_value)
+
 if __name__ == '__main__':
     ## usage example
-    from time import sleep
+    pbar = ProgressBar(10)
+    pbar.update(10)
+    print pbar.build_output_string(time())
+    print
+
     example_rangevalue = 40
     example_title_example_one =  'explicit update'
     progressbar = ProgressBar(example_rangevalue, example_title_example_one)
     for new_value in range(example_rangevalue):
-        time.sleep(0.1)
+        sleep(0.1)
         progressbar.update(new_value)
 
     example_title_example_two = 'implicit update by 1'
     progressbar = ProgressBar(example_rangevalue, example_title_example_two)
     for i in range(example_rangevalue):
-        time.sleep(0.1)
+        sleep(0.1)
         progressbar.update()
 
     example_title_example_two = 'slow updates'
     example_rangevalue = 4
     progressbar = ProgressBar(example_rangevalue, example_title_example_two)
     for i in range(example_rangevalue):
-        time.sleep(3.8)
+        sleep(3.8)
         progressbar.update()
