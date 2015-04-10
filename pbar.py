@@ -9,12 +9,12 @@
     ## usage example
     from pbar import ProgressBar
     rangevalue = 40
-    
+
     progressbar = ProgressBar(rangevalue, 'explicit update')
     for new_value in range(rangevalue):
         .. do things..
-        pbar.update(new_value)    
-    
+        pbar.update(new_value)
+
     progressbar = ProgressBar(rangevalue, 'implicit update by 1')
     for i in range(rangevalue):
         .. do things..
@@ -267,3 +267,6 @@ if __name__ == '__main__':
         foo.append(i)
         progressbar.update(len(foo))
         sleep(0.6)
+
+
+
